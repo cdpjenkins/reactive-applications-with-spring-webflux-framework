@@ -7,16 +7,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     @PostMapping
-    public void createUser(@RequestBody @Valid CreateUserRequest createUserRequest) {
-        System.out.println("called createUser");
+    public Mono<UserRest> createUser(@RequestBody @Valid Mono<CreateUserRequest> createUserRequest) {
 
-        System.out.println("Innit");
-
-
+        return createUserRequest.map(req ->
+                new UserRest(UUID.randomUUID(), req.getFirstName(), req.getLastName(), req.getEmail())
+        );
     }
 }
