@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -27,5 +28,14 @@ public class UserController {
     @GetMapping("/{userId}")
     public Mono<UserRest> getUYser(@PathVariable UUID userId) {
         return Mono.just(new UserRest(userId, "hardcoded firstName", "hardcoded lastName", "hardcoded email"));
+    }
+
+    @GetMapping
+    public Flux<UserRest> getAllUsers() {
+        return Flux.just(
+                new UserRest(UUID.randomUUID(), "hardcoded firstName", "hardcoded lastName", "hardcoded email"),
+                new UserRest(UUID.randomUUID(), "another hardcoded firstName", "another hardcoded lastName", "another hardcoded email"),
+                new UserRest(UUID.randomUUID(), "yet another hardcoded firstName", "yet another hardcoded lastName", "yet another hardcoded email")
+        );
     }
 }
