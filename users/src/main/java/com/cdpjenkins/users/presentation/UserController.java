@@ -1,12 +1,12 @@
 package com.cdpjenkins.users.presentation;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -14,10 +14,13 @@ import java.util.UUID;
 public class UserController {
 
     @PostMapping
-    public Mono<UserRest> createUser(@RequestBody @Valid Mono<CreateUserRequest> createUserRequest) {
+    public Mono<ResponseEntity<UserRest>> createUser(@RequestBody @Valid Mono<CreateUserRequest> createUserRequest) {
 
         return createUserRequest.map(req ->
                 new UserRest(UUID.randomUUID(), req.getFirstName(), req.getLastName(), req.getEmail())
-        );
+        ).map( user -> ResponseEntity
+                .status(HttpStatus.CREATED)
+                .location(URI.create("/users/" + user.getId()))
+                .body(user));
     }
 }
