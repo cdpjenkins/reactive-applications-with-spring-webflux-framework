@@ -23,4 +23,9 @@ public class UserController {
                 .location(URI.create("/users/" + user.getId()))
                 .body(user));
     }
+
+    @GetMapping("/{userId}")
+    public Mono<UserRest> getUYser(@PathVariable UUID userId) {
+        return Mono.just(new UserRest(userId, "hardcoded firstName", "hardcoded lastName", "hardcoded email"));
+    }
 }
