@@ -5,9 +5,13 @@ import com.cdpjenkins.users.data.UserRepository;
 import com.cdpjenkins.users.presentation.CreateUserRequest;
 import com.cdpjenkins.users.presentation.UserRest;
 import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +34,14 @@ public class UserServiceImpl implements UserService {
         return createUserRequestMono
                 .mapNotNull(UserServiceImpl::convertToEntity)
                 .flatMap(userRepository::save)
-                .mapNotNull(UserServiceImpl::convertToRest);
+                .mapNotNull(UserServiceImpl::convertToRest)
+                .onErrorMap(throwable ->
+                        switch (throwable) {
+                            case DuplicateKeyException e -> new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+                            case DataIntegrityViolationException e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data integrity violation");
+                            default -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+                        }
+                );
     }
 
     @Override
