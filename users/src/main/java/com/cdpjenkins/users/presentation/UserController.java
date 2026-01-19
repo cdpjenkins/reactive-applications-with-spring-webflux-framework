@@ -1,5 +1,6 @@
 package com.cdpjenkins.users.presentation;
 
+import com.cdpjenkins.users.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,20 +15,28 @@ import java.util.UUID;
 @RequestMapping("/users")
 public class UserController {
 
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @PostMapping
     public Mono<ResponseEntity<UserRest>> createUser(@RequestBody @Valid Mono<CreateUserRequest> createUserRequest) {
-
-        return createUserRequest.map(req ->
-                new UserRest(UUID.randomUUID(), req.getFirstName(), req.getLastName(), req.getEmail())
-        ).map( user -> ResponseEntity
-                .status(HttpStatus.CREATED)
-                .location(URI.create("/users/" + user.getId()))
-                .body(user));
+        return userService.createUser(createUserRequest)
+                .map(user ->
+                        ResponseEntity
+                                .status(HttpStatus.CREATED)
+                                .location(URI.create("/users/" + user.getId()))
+                                .body(user));
     }
 
     @GetMapping("/{userId}")
-    public Mono<UserRest> getUYser(@PathVariable UUID userId) {
-        return Mono.just(new UserRest(userId, "hardcoded firstName", "hardcoded lastName", "hardcoded email"));
+    public Mono<ResponseEntity<UserRest>> getUser(@PathVariable UUID userId) {
+        return userService
+                .getUserById(userId)
+                .map(ResponseEntity::ok)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @GetMapping
