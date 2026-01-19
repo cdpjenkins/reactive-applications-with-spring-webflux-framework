@@ -40,15 +40,8 @@ public class UserController {
     }
 
     @GetMapping
-    public Flux<UserRest> getAllUsers(@RequestParam(name = "start", defaultValue = "0") int start,
+    public Flux<UserRest> getAllUsers(@RequestParam(name = "page", defaultValue = "0") int page,
                                       @RequestParam(name = "limit", defaultValue = "50") int limit) {
-        System.out.println("start=" + start);
-        System.out.println("limit=" + limit);
-
-        return Flux.just(
-                new UserRest(UUID.randomUUID(), "hardcoded firstName", "hardcoded lastName", "hardcoded email"),
-                new UserRest(UUID.randomUUID(), "another hardcoded firstName", "another hardcoded lastName", "another hardcoded email"),
-                new UserRest(UUID.randomUUID(), "yet another hardcoded firstName", "yet another hardcoded lastName", "yet another hardcoded email")
-        ).skip(start).take(limit);
+        return userService.findAll(page, limit);
     }
 }

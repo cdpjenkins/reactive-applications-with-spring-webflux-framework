@@ -5,8 +5,10 @@ import com.cdpjenkins.users.data.UserRepository;
 import com.cdpjenkins.users.presentation.CreateUserRequest;
 import com.cdpjenkins.users.presentation.UserRest;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -36,6 +38,14 @@ public class UserServiceImpl implements UserService {
         return userRepository
                 .findById(userId)
                 .mapNotNull(UserServiceImpl::convertToRest);
+    }
+
+    @Override
+    public Flux<UserRest> findAll(int start, int limit) {
+        PageRequest pageable = PageRequest.of(start, limit);
+        return userRepository
+                .findAllBy(pageable)
+                .map(UserServiceImpl::convertToRest);
     }
 
     private static UserEntity convertToEntity(CreateUserRequest req) {
