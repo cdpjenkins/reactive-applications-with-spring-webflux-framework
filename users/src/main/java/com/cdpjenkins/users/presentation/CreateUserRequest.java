@@ -6,11 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
-    //     "firstName": "Mr",
-    //    "lastName": "Cat",
-    //    "email": "mrcat@example.com",
-    //    "password": "12345678"
-
     @NotBlank(message = "firstName cannot be empty")
     @Size(min = 2, max = 50, message = "firstName must be between 2 and 50 characters")
     @NotNull
