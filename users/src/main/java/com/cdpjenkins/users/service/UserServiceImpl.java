@@ -37,8 +37,8 @@ public class UserServiceImpl implements UserService {
                 .mapNotNull(UserServiceImpl::convertToRest)
                 .onErrorMap(throwable ->
                         switch (throwable) {
-                            case DuplicateKeyException e -> new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
-                            case DataIntegrityViolationException e -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data integrity violation");
+                            case DuplicateKeyException ignored -> new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+                            case DataIntegrityViolationException ignored -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data integrity violation");
                             default -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
                         }
                 );
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Flux<UserRest> findAll(int start, int limit) {
+    public Flux<UserRest> getAllUsers(int start, int limit) {
         PageRequest pageable = PageRequest.of(start, limit);
         return userRepository
                 .findAllBy(pageable)
