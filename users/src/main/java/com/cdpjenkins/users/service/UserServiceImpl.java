@@ -34,14 +34,7 @@ public class UserServiceImpl implements UserService {
         return createUserRequestMono
                 .mapNotNull(UserServiceImpl::convertToEntity)
                 .flatMap(userRepository::save)
-                .mapNotNull(UserServiceImpl::convertToRest)
-                .onErrorMap(throwable ->
-                        switch (throwable) {
-                            case DuplicateKeyException ignored -> new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
-                            case DataIntegrityViolationException ignored -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data integrity violation");
-                            default -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-                        }
-                );
+                .mapNotNull(UserServiceImpl::convertToRest);
     }
 
     @Override
