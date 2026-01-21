@@ -1,13 +1,17 @@
 package com.cdpjenkins.users.presentation;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
+
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,5 +29,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public Mono<ErrorResponse> handleGeneralException(Exception ex) {
         return Mono.just(ErrorResponse.builder(ex, HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred").build());
+    }
+
+    @ExceptionHandler(WebExchangeBindException.class)
+    public Mono<ErrorResponse> handleWebExchangeBindException(WebExchangeBindException ex) {
+        String errors = allErrorsFrom(ex);
+
+        return Mono.just(ErrorResponse.builder(ex, HttpStatus.BAD_REQUEST, errors).build());
+    }
+
+    @NonNull
+    private static String allErrorsFrom(WebExchangeBindException exception) {
+        return exception.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
     }
 }
