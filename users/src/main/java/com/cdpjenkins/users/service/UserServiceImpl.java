@@ -5,15 +5,13 @@ import com.cdpjenkins.users.data.UserRepository;
 import com.cdpjenkins.users.presentation.CreateUserRequest;
 import com.cdpjenkins.users.presentation.UserRest;
 import org.springframework.beans.BeanUtils;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -22,17 +20,17 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RequestedContentTypeResolver requestedContentTypeResolver;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, RequestedContentTypeResolver requestedContentTypeResolver) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.requestedContentTypeResolver = requestedContentTypeResolver;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public Mono<UserRest> createUser(Mono<CreateUserRequest> createUserRequestMono) {
         return createUserRequestMono
-                .mapNotNull(UserServiceImpl::convertToEntity)
+                .flatMap(this::convertToEntity)
                 .flatMap(userRepository::save)
                 .mapNotNull(UserServiceImpl::convertToRest);
     }
@@ -52,10 +50,17 @@ public class UserServiceImpl implements UserService {
                 .map(UserServiceImpl::convertToRest);
     }
 
-    private static UserEntity convertToEntity(CreateUserRequest req) {
-        UserEntity entity = new UserEntity();
-        BeanUtils.copyProperties(req, entity);
-        return entity;
+    private Mono<UserEntity> convertToEntity(CreateUserRequest req) {
+        // Hashing the password is CPU-intensive... why are we bothering to do this?
+        return Mono.fromCallable( () -> {
+            UserEntity entity = new UserEntity();
+            BeanUtils.copyProperties(req, entity);
+            String unhashedPassword = req.getPassword();
+            String hashedPassword = passwordEncoder.encode(unhashedPassword);
+            entity.setPassword(hashedPassword);
+            entity.setPassword(hashedPassword);
+            return entity;
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 
     private static UserRest convertToRest(UserEntity entity) {
