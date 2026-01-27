@@ -2,17 +2,19 @@ package com.cdpjenkins.users.service;
 
 import com.cdpjenkins.users.data.UserEntity;
 import com.cdpjenkins.users.data.UserRepository;
-import com.cdpjenkins.users.presentation.CreateUserRequest;
-import com.cdpjenkins.users.presentation.UserRest;
+import com.cdpjenkins.users.presentation.model.CreateUserRequest;
+import com.cdpjenkins.users.presentation.model.UserRest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Collections;
 import java.util.UUID;
 
 
@@ -48,6 +50,17 @@ public class UserServiceImpl implements UserService {
         return userRepository
                 .findAllBy(pageable)
                 .map(UserServiceImpl::convertToRest);
+    }
+
+    @Override
+    public Mono<UserDetails> findByUsername(String username) {
+        return userRepository.findByEmail(username)
+                .map(userEntity -> User
+                        .withUsername(userEntity.getEmail())
+                        .password(userEntity.getPassword())
+                        .authorities(Collections.emptyList())
+                        .build()
+                );
     }
 
     private Mono<UserEntity> convertToEntity(CreateUserRequest req) {

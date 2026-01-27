@@ -1,4 +1,4 @@
-package com.cdpjenkins.users.presentation;
+package com.cdpjenkins.users.presentation.model;
 
 import java.util.UUID;
 
