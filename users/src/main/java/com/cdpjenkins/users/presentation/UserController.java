@@ -1,5 +1,7 @@
 package com.cdpjenkins.users.presentation;
 
+import com.cdpjenkins.users.presentation.model.CreateUserRequest;
+import com.cdpjenkins.users.presentation.model.UserRest;
 import com.cdpjenkins.users.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
