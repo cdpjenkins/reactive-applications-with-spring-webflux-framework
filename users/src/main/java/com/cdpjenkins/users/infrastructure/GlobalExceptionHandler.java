@@ -1,4 +1,4 @@
-package com.cdpjenkins.users.presentation;
+package com.cdpjenkins.users.infrastructure;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,5 +50,10 @@ public class GlobalExceptionHandler {
         return exception.getBindingResult().getAllErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public Mono<ErrorResponse> handleBadCredentialsException(BadCredentialsException e) {
+        return Mono.just(ErrorResponse.builder(e, HttpStatus.UNAUTHORIZED, e.getMessage()).build());
     }
 }

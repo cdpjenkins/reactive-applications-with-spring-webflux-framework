@@ -3,10 +3,10 @@ package com.cdpjenkins.users.presentation;
 import com.cdpjenkins.users.presentation.model.AuthenticationRequest;
 import com.cdpjenkins.users.service.AuthenticationService;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -27,8 +27,6 @@ public class AuthenticationController {
                         ResponseEntity.ok()
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + authResultMap.get("JWT"))
                                 .header("UserId", authResultMap.get("userId"))
-                                .build())
-                .onErrorReturn(BadCredentialsException.class, ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials"))
-                .onErrorReturn(Exception.class, ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                                .build());
     }
 }
