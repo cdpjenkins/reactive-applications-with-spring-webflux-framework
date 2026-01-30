@@ -3,7 +3,9 @@ package com.cdpjenkins.users.presentation;
 import com.cdpjenkins.users.presentation.model.AuthenticationRequest;
 import com.cdpjenkins.users.service.AuthenticationService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -17,7 +19,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<ResponseEntity>> login(@RequestBody Mono<AuthenticationRequest> authenticationRequestMono) {
+    public Mono<ResponseEntity<Object>> login(@RequestBody Mono<AuthenticationRequest> authenticationRequestMono) {
         return authenticationRequestMono
                 .flatMap(authenticationRequest ->
                         authenticationService.authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword()))
@@ -25,6 +27,8 @@ public class AuthenticationController {
                         ResponseEntity.ok()
                                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + authResultMap.get("JWT"))
                                 .header("UserId", authResultMap.get("userId"))
-                                .build());
+                                .build())
+                .onErrorReturn(BadCredentialsException.class, ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials"))
+                .onErrorReturn(Exception.class, ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 }
