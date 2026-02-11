@@ -2,13 +2,11 @@ package com.cdpjenkins.users.service;
 
 import com.cdpjenkins.users.data.UserEntity;
 import com.cdpjenkins.users.data.UserRepository;
-import com.cdpjenkins.users.presentation.model.CreateUserRequest;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,10 +14,12 @@ import java.util.Map;
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final ReactiveAuthenticationManager reactiveAuthenticationManager;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
-    public AuthenticationServiceImpl(ReactiveAuthenticationManager reactiveAuthenticationManager, UserRepository userRepository) {
+    public AuthenticationServiceImpl(ReactiveAuthenticationManager reactiveAuthenticationManager, UserRepository userRepository, JwtService jwtService) {
         this.reactiveAuthenticationManager = reactiveAuthenticationManager;
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private Map<String, String> createAuthResponse(UserEntity userEntity) {
         HashMap<String, String> result = new HashMap<>();
         result.put("userId", userEntity.getId().toString());
-        result.put("token", "JWT");                                 // this needs to be replaced with actual JWT
+        result.put("token", jwtService.generateJwt(userEntity.getId().toString()));
 
         return result;
     }

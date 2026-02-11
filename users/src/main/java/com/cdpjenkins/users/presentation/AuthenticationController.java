@@ -25,7 +25,7 @@ public class AuthenticationController {
                         authenticationService.authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword()))
                 .map(authResultMap ->
                         ResponseEntity.ok()
-                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authResultMap.get("JWT"))
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + authResultMap.get("token"))
                                 .header("UserId", authResultMap.get("userId"))
                                 .build());
     }
