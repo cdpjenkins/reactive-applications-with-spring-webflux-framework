@@ -1,12 +1,14 @@
 package com.cdpjenkins.users.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -31,8 +33,29 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
+    @Override
+    public Mono<Boolean> validateJwt(String token) {
+        return Mono.just(token)
+                .map(jwt -> parseToken(token))
+                .map(claims -> !claims.getExpiration().before(Date.from(Instant.now())));
+    }
+
+    @Override
+    public String extractTokenSubject(String token) {
+        return parseToken(token)
+                .getSubject();
+    }
+
+    private Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
     @Nullable
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         return Optional.ofNullable(environment.getProperty("token.secret"))
                 .map(String::getBytes)
                 .map(Keys::hmacShaKeyFor)
